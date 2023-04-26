@@ -35,6 +35,22 @@ const options = {
 const nodemailer = require("nodemailer");
 
 
+const authorize = (req, res, next) => {
+  if (req.headers.authorization) {
+      try {
+          const verify = jwt.verify(req.headers.authorization, SECRET_KEY);
+          if (verify) {
+              next();
+          }
+      } catch (error) {
+          res.status(401).json({message: "Unauthorized"});
+      }
+  } else {
+      res.status(401).json({message: "Unauthorized"});
+  }
+} 
+
+
 
 app.get("/", function (request, response) {
     response.send("welcome to password reset flow api🎉🎉🎉🎉🎉");
@@ -42,7 +58,7 @@ app.get("/", function (request, response) {
 
 
 //1 register
-app.post('/register', async (req, res) => {
+app.post('/register',authorize, async (req, res) => {
     console.log(req.body)
     try {
       const connection = await mongoClient.connect(URL);
@@ -70,7 +86,7 @@ app.post('/register', async (req, res) => {
 
 
   //2.login
-  app.post('/login', async (req, res) => {
+  app.post('/login',authorize, async (req, res) => {
     try {
       console.log('req.body:', req.body); // check the request body
       const connection = await mongoClient.connect(URL);
@@ -94,7 +110,7 @@ app.post('/register', async (req, res) => {
 
 
 //Verification email
-  app.post('/sendmail', async function (req, res) {
+  app.post('/sendmail',authorize, async function (req, res) {
     console.log(req.body)
     try {
         const connection = await mongoClient.connect(URL);
@@ -151,7 +167,7 @@ app.post('/register', async (req, res) => {
 
 // to verify the customer
 
-app.post("/verify", async (req, res) => {
+app.post("/verify",authorize, async (req, res) => {
   console.log(req.body)
   try {
       const connection = await mongoClient.connect(URL);
@@ -174,7 +190,7 @@ app.post("/verify", async (req, res) => {
 
 // update password
 
-app.post('/changepassword/:id', async function (req, res) {
+app.post('/changepassword/:id',authorize, async function (req, res) {
   console.log(req.params.id)
   try {
 
